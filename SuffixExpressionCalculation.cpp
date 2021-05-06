@@ -3,6 +3,8 @@
 #include<conio.h>
 #include<cctype>
 #include<math.h>
+#include <fstream>
+
 using namespace std;
 /*
 Bài toán tính biểu thức toán học nhập vào 
@@ -99,15 +101,37 @@ class Stack
       }
 };
 
-string toPostFix();
+string convertToSuffix(string str);
 int priority(char c);
 int calculate( string s);
 int operator1(int left, int right , char c);
+
 int main ()
 {
-    string s = toPostFix();
-    cout<<s;
-    cout<<"\n"<<calculate(s);
+    // Thao tác với File
+    char * str = new char[256];
+    cout<<"The path to your file is: ";
+    cin>>str;
+    ifstream file(str);
+    string data;                           // Biến data dùng để lưu dữ liệu đọc từ file
+    if (file.fail())
+    {
+	   cout << "Failed to open this file!" <<endl;
+    }
+    else
+    {
+    while (!file.eof())
+    {
+      getline(file,data);
+      cout<<"The file's data is: "<<data<<endl;  
+    }
+    }
+    file.close();
+    // Lưu biểu thức chuyển đổi sang hậu tố vào biến s
+    string s = convertToSuffix(data);
+    cout<<"The suffix expression is: "<<s<<endl;
+    // Tính toán biếu thức hậu tố và in ra kết quả
+    cout<<"The result is: "<<calculate(s);
     getch();
 }
 // Hàm xét thứ tự ưu tiện toán tử
@@ -119,13 +143,14 @@ int priority(char c)
     return 0;
 }
 // Hàm chuyển đổi biểu thức trung tố về hậu tố dùng stack
-string toPostFix()
+string convertToSuffix(string str)
 {
     Stack<char> s;
     s.push('(');
-    string str,str1="";
-    cout<<"Input: ";
-    getline(cin, str);
+    //string str,str1="";
+    string str1="";
+    //cout<<"Input: ";
+    //getline(cin, str);
     str.push_back(')');
     int n = str.length(), i = 0, j = 0;
     while (i < n)
@@ -177,32 +202,32 @@ int operator1(int left, int right , char c)
 //Hàm tính toán với biểu thức hậu tố dùng stack
 int calculate( string s)
 {
-    Stack<int> st;
-    int n = s.length(), i = 0, c = 0;
+    Stack<int> st; 
+    int n = s.length(), i = 0, count = 0;
     while(i < n)
     {
         if(s[i] != ' ' && isdigit(s[i]))     //Nếu kí tự đọc vào là số
         {
-            c++;                             // biến đếm dùng để đếm các chữ số của 1 số
+            count++;                         // biến đếm dùng để đếm các chữ số của 1 số
         }
         else
         {
             if(s[i] == ' ')                  // Khi đã gặp dấu ' ' thì chuyển các kí tự vừa đọc thành số và đưa vào stack
             {
                 int sum = 0;
-                for(int j = i - c ; j < i ; j++ )
+                for(int j = i - count ; j < i ; j++ )
                 {
-                    int n = s[j] - '0'; 
-                    c--;
-                    sum += n*pow(10,c);
+                    int n = s[j] - '0';      // Chuyển kí tự số thành số nguyên int
+                    count--;
+                    sum += n*pow(10,count);  
                 }
-                st.push(sum);
+                st.push(sum);                // Đẩy vào stack số nguyên hoàn chỉnh
             }
             else                             // Nếu gặp kí tự là toán tử thì lấy từ stack ra các số và tính toán
             {
-                int r = st.pop();
-                int l = st.pop();
-                st.push(operator1(l , r , s[i]));
+                int right = st.pop();
+                int left = st.pop();
+                st.push(operator1(left , right , s[i]));
             }
         }
         i++;
